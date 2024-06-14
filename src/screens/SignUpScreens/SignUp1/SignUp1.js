@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { View, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useState, useContext } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ReusableText, ReusableTouchable, HeightSpacer } from '../../../components';
@@ -27,7 +27,8 @@ const SignUp1 = () => {
   ]; 
 
   return (
-    <SafeAreaView style={styles.container}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={styles.container}>
       <ReusableText text="Sign Up" color="black" fontSize={32} fontFamily="Arial" />
       <HeightSpacer height={15} />
       <ReusableForm
@@ -36,7 +37,8 @@ const SignUp1 = () => {
       <HeightSpacer height={10} />
       {state.errorMessage ? <ReusableText text={state.errorMessage} color="red" /> : null} 
       <ReusableTouchable btnText="Moving on" onPress={() => signup({ email, password })}  width={200} textColor="white" backgroundColor="red" borderWidth={1} borderColor="red" /> 
-    </SafeAreaView> 
+    </View> 
+    </TouchableWithoutFeedback> 
   )
 } 
 

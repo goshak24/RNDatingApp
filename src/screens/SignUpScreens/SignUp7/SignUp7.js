@@ -1,12 +1,13 @@
-import { StyleSheet, View, Image, TouchableOpacity, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, TextInput, Text, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import React, { useState } from 'react';
 import { ReusableText, ReusableTouchable, HeightSpacer } from '../../../components';
 import * as ImagePicker from 'expo-image-picker';
 import { navigationRef } from '../../../utilities/navigation/NavigationService';
 
-const SignUp3 = ({ route }) => {
-  const { email, petName, petType, breedType, petAge } = route.params;
-  const [images, setImages] = useState([null, null, null, null]);
+const SignUp7 = ({ route }) => {
+  const { email, petName, petType, breedType, petAge, images, petBio, healthInfo, name, age, location } = route.params;
+  const [userImages, setUserImages] = useState([null, null]);
+  const [bio, setBio] = useState('');
   const [errors, setErrors] = useState('');
 
   const requestPermission = async () => {
@@ -25,28 +26,29 @@ const SignUp3 = ({ route }) => {
     });
 
     if (!result.canceled) {
-      const newImages = [...images];
+      const newImages = [...userImages];
       newImages[index] = result.assets[0].uri;
-      setImages(newImages);
+      setUserImages(newImages);
     }
   };
 
+  // edit this to save information to the user context and navigate to the main dashboard as sign up is complete 
   const handleSubmit = () => {
-    if (images.some(image => image === null)) {
-      setErrors('Please upload all 4 pictures');
+    if (userImages.some(image => image === null)) {
+      setErrors('Please upload both pictures and enter your bio (optional)');
     } else {
-      setErrors(''); 
-      navigationRef.navigate('SignUp4', { email, petName, petType, breedType, images });
+      setErrors('');
+      navigationRef.navigate('NextScreen', { email, petName, petType, breedType, petAge, images, petBio, healthInfo, name, age, location, userImages, bio });
     }
-  }; 
+  };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={styles.container}>
-      <ReusableText text="Upload 4 pictures of your pet" color="black" fontSize={20} />
+      <ReusableText text="Upload 2 pictures of yourself" color="black" fontSize={20} />
       <HeightSpacer height={20} />
       <View style={styles.imageContainer}>
-        {images.map((image, index) => (
+        {userImages.map((image, index) => (
           <TouchableOpacity key={index} onPress={() => handleImagePick(index)} style={styles.imageWrapper}>
             {image ? (
               <Image source={{ uri: image }} style={styles.image} />
@@ -56,22 +58,22 @@ const SignUp3 = ({ route }) => {
           </TouchableOpacity>
         ))}
       </View>
-      {errors ? <ReusableText text={errors} color="red" /> : null}
-      <ReusableTouchable
-        btnText="Submit"
-        onPress={handleSubmit}
-        width={200}
-        textColor="white"
-        backgroundColor="red"
-        borderWidth={1}
-        borderColor="red"
+      <TextInput
+        style={styles.input}
+        placeholder="Enter your bio"
+        value={bio}
+        onChangeText={setBio}
+        multiline
       />
+      <HeightSpacer height={20} />
+      <ReusableTouchable btnText="Submit" onPress={handleSubmit} width={200} textColor="white" backgroundColor="red" borderWidth={1} borderColor="red" />
+      {errors ? <Text style={styles.errorText}>{errors}</Text> : null}
     </View>
     </TouchableWithoutFeedback>
   );
 };
 
-export default SignUp3;
+export default SignUp7;
 
 const styles = StyleSheet.create({
   container: {
@@ -82,10 +84,10 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   imageWrapper: {
+    margin: 5, 
     width: '47.5%',
     height: 150,
     marginBottom: 20,
@@ -99,5 +101,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 10,
+  },
+  input: {
+    height: 100,
+    borderColor: 'gray',
+    borderWidth: 1,
+    width: '100%',
+    padding: 10,
+    textAlignVertical: 'top',
+  },
+  errorText: {
+    color: 'red',
   },
 }); 

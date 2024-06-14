@@ -1,7 +1,6 @@
-import { StyleSheet } from 'react-native'
+import { View, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native'
 import React, { useState, useContext } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { ReusableText, HeightSpacer } from '../../../components' 
+import { ReusableText, HeightSpacer, ReusableTouchable } from '../../../components' 
 import ReusableForm from '../../../components/reusable/ReusableForm'
 import { Context as AuthContext } from '../../../context/AuthContext'; 
 
@@ -9,7 +8,8 @@ import { Context as AuthContext } from '../../../context/AuthContext';
 const SignIn1 = () => {
   const [email, setEmail] = useState(''); 
   const [password, setPassword] = useState(''); 
-  const { signin } = useContext(AuthContext); 
+  const [error, setError] = useState(''); 
+  const { state, signin } = useContext(AuthContext); 
 
   const fields = [
     {
@@ -28,7 +28,8 @@ const SignIn1 = () => {
   ]; 
 
   return (
-    <SafeAreaView style={styles.container}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={styles.container}>
       <ReusableText text="Sign In" color="black" fontSize={32} fontFamily="Arial" />
       <HeightSpacer height={15} /> 
       <ReusableForm
@@ -36,7 +37,10 @@ const SignIn1 = () => {
       onSubmit={() => signin({email, password})} 
       buttonText="Sign In" 
       /> 
-    </SafeAreaView>
+      <ReusableTouchable btnText="Sign In" onPress={() => signin({ email, password })}  width={200} textColor="white" backgroundColor="red" borderWidth={1} borderColor="red" /> 
+      {state.errorMessage ? <ReusableText text={state.errorMessage} color="red" /> : null} 
+    </View>
+    </TouchableWithoutFeedback>   
   )
 }
 

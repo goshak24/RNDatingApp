@@ -23,9 +23,9 @@ const deleteUser = (dispatch) => () => {
 export const { Provider, Context } = createDataContext(
     userReducer, 
     { fetchUserData, updateUser, deleteUser }, 
-    { userId: '', name: '', email: '', profPic: '', bio: '', location: '', 
+    { userId: '', email: '', name: '', age: '', location: '', profPic: '', bio: '',  
         preferences: {}, 
         pets: {
-            petId: '', petName: '', type: '', breed: '', age: '', petPics: [], healthInfo: [], bio: '' 
+            petId: '', petName: '', type: '', breed: '', age: '', petPics: [], bio: '', healthInfo: [], 
         }}
 ); 

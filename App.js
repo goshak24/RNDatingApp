@@ -15,6 +15,10 @@ import SignIn1 from './src/screens/SignInScreens/SignIn1/SignIn1';
 import SignUp1 from './src/screens/SignUpScreens/SignUp1/SignUp1';
 import SignUp2 from './src/screens/SignUpScreens/SignUp2/SignUp2';
 import SignUp3 from './src/screens/SignUpScreens/SignUp3/SignUp3';
+import SignUp4 from './src/screens/SignUpScreens/SignUp4/SignUp4';
+import SignUp5 from './src/screens/SignUpScreens/SignUp5/SignUp5';
+import SignUp6 from './src/screens/SignUpScreens/SignUp6/SignUp6';
+import SignUp7 from './src/screens/SignUpScreens/SignUp7/SignUp7'; 
 import MainDashboard from './src/screens/MainDashboard/MainDashboard';
 import PetProfile from './src/screens/PetProfile/PetProfile';
 import Standouts from './src/screens/Standouts/Standouts'; 
@@ -46,6 +50,10 @@ const SignUpStackScreen = () => {
       <SignUpStack.Screen name="SignUp1" component={SignUp1} />
       <SignUpStack.Screen name="SignUp2" component={SignUp2} />
       <SignUpStack.Screen name="SignUp3" component={SignUp3} />
+      <SignUpStack.Screen name="SignUp4" component={SignUp4} />
+      <SignUpStack.Screen name="SignUp5" component={SignUp5} />
+      <SignUpStack.Screen name="SignUp6" component={SignUp6} />
+      <SignUpStack.Screen name="SignUp7" component={SignUp7} />
     </SignUpStack.Navigator>
   );
 };  
@@ -92,7 +100,7 @@ const App = () => {
   return (
     <NavigationContainer ref={navigationRef}>
       <RootStack.Navigator screenOptions={{headerShown: false}} initialRouteName="Onboarding">
-        <RootStack.Screen name="Onboarding" component={Onboarding} />
+        <RootStack.Screen name="Onboarding" component={Onboarding} /> 
         <RootStack.Screen name="AuthStack" component={AuthStackScreen} />
         <RootStack.Screen name="MainStack" component={MainStackScreen} />
         <RootStack.Screen name="MainStackHeader" component={MainStackHeaderScreen} /> 
