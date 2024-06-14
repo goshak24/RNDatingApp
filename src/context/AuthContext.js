@@ -70,7 +70,7 @@ const signup = (dispatch) => async ({ email, password }) => {
     const response = await tempServerApi.post('/signup', { email, password });
         dispatch({ type: 'signup', payload: response.data.token })
         await AsyncStorage.setItem('token', response.data.token); 
-        navigationRef.navigate('SignUp2'); 
+        navigationRef.navigate('SignUp2', { email }); 
     } catch (err) {
         dispatch({ type: 'add_error', payload: 'Sign up failed' })
     } 

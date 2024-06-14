@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Modal, StyleSheet, Pressable, View, Text, ScrollView } from 'react-native';
-import ReusableTouchable from './ReusableTouchable';
+import ReusableTouchable from './ReusableTouchable'; 
 
-const ReusableModal = () => {
+const ReusableModal = ({ modalText, optionsList = [], onSelect }) => { 
   const [modalVisible, setModalVisible] = useState(false); 
 
-  const handleOptionSelect = () => {
+  const handleOptionSelect = (item) => {
     setModalVisible(!modalVisible); 
+    if (onSelect) {
+        onSelect(item);
+    } 
   } 
 
   return (
@@ -21,20 +24,19 @@ const ReusableModal = () => {
       > 
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <ScrollView>
-                <View style={styles.option}>
-                    <ReusableTouchable onPress={handleOptionSelect} btnText="Cat" borderColor="gray" borderWidth={1} />
-                </View>
-                <View style={styles.option}>
-                    <ReusableTouchable onPress={handleOptionSelect} btnText="Dog" borderColor="gray" borderWidth={1} />
-                </View>
-                <View style={styles.option}>
-                    <ReusableTouchable onPress={handleOptionSelect} btnText="Rabbit" borderColor="gray" borderWidth={1} />
-                </View>
-                <View style={styles.option}>
-                    <ReusableTouchable onPress={handleOptionSelect} btnText="Guinea Pig" borderColor="gray" borderWidth={1} />
-                </View> 
-            </ScrollView>
+          <ScrollView>
+            {optionsList.map((item, index) => (
+                <ReusableTouchable 
+                    key={index} 
+                    btnText={item} 
+                    textColor="black" 
+                    width={200} 
+                    borderWidth={1} 
+                    borderColor="gray" 
+                    onPress={() => handleOptionSelect(item)} 
+                /> 
+            ))} 
+            </ScrollView> 
           </View>
         </View>
       </Modal>
@@ -43,7 +45,7 @@ const ReusableModal = () => {
         style={[styles.button, styles.buttonOpen]}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={styles.textStyle}>Show Modal</Text>
+        <Text style={styles.textStyle}>{modalText}</Text>
       </Pressable>
     </View>
   );

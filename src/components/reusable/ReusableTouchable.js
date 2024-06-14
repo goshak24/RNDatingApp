@@ -4,6 +4,7 @@ import React from 'react';
 const ReusableTouchable = ({ onPress, btnText, textColor, width, backgroundColor, borderWidth, borderColor }) => { 
     const styles = StyleSheet.create({
         container: {
+            margin: 5,
             width: width, 
             backgroundColor: backgroundColor, 
             borderWidth: borderWidth, 

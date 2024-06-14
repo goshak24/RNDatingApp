@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native'
 import React, { useState, useContext } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ReusableText, HeightSpacer } from '../../../components';
+import { ReusableText, ReusableTouchable, HeightSpacer } from '../../../components';
 import ReusableForm from '../../../components/reusable/ReusableForm'; 
 import { Context as AuthContext } from '../../../context/AuthContext'; 
 
@@ -32,16 +32,15 @@ const SignUp1 = () => {
       <HeightSpacer height={15} />
       <ReusableForm
       fields={fields}
-      onSubmit={() => signup({ email, password })} 
-      buttonText="Moving on" 
       /> 
-      <HeightSpacer height={15} />
+      <HeightSpacer height={10} />
       {state.errorMessage ? <ReusableText text={state.errorMessage} color="red" /> : null} 
+      <ReusableTouchable btnText="Moving on" onPress={() => signup({ email, password })}  width={200} textColor="white" backgroundColor="red" borderWidth={1} borderColor="red" /> 
     </SafeAreaView> 
   )
 } 
 
-export default SignUp1
+export default SignUp1 
 
 const styles = StyleSheet.create({
   container: {
