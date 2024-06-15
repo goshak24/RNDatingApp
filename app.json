@@ -12,6 +12,7 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "bundleIdentifier": "com.goshak24.pdaproject", 
       "supportsTablet": true
     },
     "android": {

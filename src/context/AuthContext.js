@@ -1,3 +1,5 @@
+import { db } from '../utilities/api/firebase';
+import { doc, getDoc } from 'firebase/firestore';   
 import createDataContext from "./createDataContext";
 import tempServerApi from "../utilities/api/tempServerApi"; 
 import { navigationRef } from "../utilities/navigation/NavigationService";
@@ -40,6 +42,7 @@ const signin = (dispatch) => async ({email, password}) => {
         dispatch({ type: 'signin', payload: response.data.token }); 
         await AsyncStorage.setItem('token', response.data.token); 
         await AsyncStorage.setItem('isSignUpComplete', 'false');
+        
         navigationRef.navigate('MainStack'); 
     } catch (err) {
         dispatch({ type: 'add_error', payload: 'Sign in failed' });

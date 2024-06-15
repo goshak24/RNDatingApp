@@ -1,9 +1,10 @@
-import tempServerApi from "../utilities/api/tempServerApi";
+import { db } from '../utilities/api/firebase';
+import { doc, setDoc, getDoc } from 'firebase/firestore'; 
 import { navigationRef } from "../utilities/navigation/NavigationService";
 import createDataContext from "./createDataContext";
 import uuid from 'react-native-uuid'; 
 
-const userReducer = (state, action) => {
+const userReducer = (state, action) => { 
     switch (action.type) {
         case 'createUser': 
             return { 
@@ -13,32 +14,29 @@ const userReducer = (state, action) => {
                 name: action.payload.name,
                 age: action.payload.age,
                 location: action.payload.location, 
-                profPic: action.payload.userImages[0], 
+                userImages: action.payload.userImages || [], 
                 bio: action.payload.bio,
                 preferences: {}, 
-                pets: { 
-                    petId: action.payload.petId,
-                    petName: action.payload.petName,
-                    type: action.payload.petType,
-                    breed: action.payload.breedType,
-                    age: action.payload.petAge,
-                    petPics: action.payload.images,
-                    bio: action.payload.petBio,
-                    healthInfo: action.payload.healthInfo,
-                } 
+                pets: action.payload.pets && action.payload.pets.length > 0 ? [action.payload.pets[0]] : [] 
             };
         case 'add_error': 
             return { ...state, errorMessage: action.payload }
         default: 
             return state;
     } 
-} 
-
-const fetchUserData = (dispatch) => () => {
-
-} 
+}; 
 
 const createUser = (dispatch) => async ({email, petName, petType, breedType, petAge, images, petBio, healthInfo, name, age, location, userImages, bio}) => { 
+    if (!db) {
+        dispatch({ type: 'add_error', payload: 'Database not initialized' });
+        return;
+    }
+
+    if (!userImages || userImages.length === 0) {
+        dispatch({ type: 'add_error', payload: 'User images are required' });
+        return;
+    }
+
     try {
         const userId = uuid.v4();
         const petId = uuid.v4();
@@ -46,24 +44,25 @@ const createUser = (dispatch) => async ({email, petName, petType, breedType, pet
             userId,
             email,
             name,
-            age,
+            age: Number(age), 
             location,
-            profPic: userImages[0], // Profile picture
+            userImages: userImages, 
             bio,
             preferences: {}, // Preferences are empty initially 
-            pets: {
+            pets: [{
                 petId,
                 petName,
                 type: petType,
                 breed: breedType,
-                age: petAge,
+                petAge: Number(petAge), 
                 petPics: images,
                 bio: petBio,
-                healthInfo,
-            }
-        };
+                healthInfo, 
+            }] 
+        }; 
 
-        await tempServerApi.post('/createuser', userPayload);
+        // Store user data in Firestore using the new modular approach
+        await setDoc(doc(db, 'usersInfo', userId), userPayload);
 
         dispatch({ 
             type: 'createUser',
@@ -72,25 +71,28 @@ const createUser = (dispatch) => async ({email, petName, petType, breedType, pet
 
         navigationRef.navigate('MainStack'); 
     } catch (err) {
-        dispatch({ type: 'add_error', payload: 'Failed creating a user' }); 
+        dispatch({ type: 'add_error', payload: err.message || 'Failed creating a user' }); 
     } 
-} 
+}; 
+
+const fetchUserData = (dispatch) => () => {
+    // Implement fetch user data logic here
+}; 
 
 const updateUser = (dispatch) => () => {
-
-} 
+    // Implement update user logic here
+};
 
 const deleteUser = (dispatch) => () => {
+    // Implement delete user logic here
+};
 
-} 
-
-// password should be the JWT, preferences outlines user's match preferences for their pet 
 export const { Provider, Context } = createDataContext(
     userReducer, 
     { createUser, fetchUserData, updateUser, deleteUser }, 
-    { userId: '', email: '', name: '', age: '', location: '', profPic: '', bio: '',  
+    { userId: '', email: '', name: '', age: '', location: '', userImages: [], bio: '',  
         preferences: {}, 
-        pets: {
-            petId: '', petName: '', type: '', breed: '', age: '', petPics: [], bio: '', healthInfo: [], 
-        }, errorMessage: '' }
-); 
+        pets: [{
+            petId: '', petName: '', type: '', breed: '', petAge: '', petPics: [], bio: '', healthInfo: "", 
+        }], errorMessage: '' }
+);

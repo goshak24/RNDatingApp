@@ -8,7 +8,7 @@ const MainDashboard = () => {
 
   return (
     <View>
-      <Text>{state.userId}</Text>
+      <Text>{state.userId}</Text> 
     </View>
   )
 }
