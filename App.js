@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { navigationRef } from './src/utilities/navigation/NavigationService';
 import { Provider as AuthProvider } from './src/context/AuthContext'; 
+import { Provider as UserProvider } from './src/context/UserContext'; 
 
 // Header Icons 
 import { Ionicons } from '@expo/vector-icons'; 
@@ -112,7 +113,9 @@ const App = () => {
 export default () => {
   return (
     <AuthProvider>
-      <App /> 
+      <UserProvider>
+        <App />    
+      </UserProvider> 
     </AuthProvider>
   )
 } 

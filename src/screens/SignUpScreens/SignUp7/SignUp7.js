@@ -1,11 +1,12 @@
 import { StyleSheet, View, Image, TouchableOpacity, TextInput, Text, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { ReusableText, ReusableTouchable, HeightSpacer } from '../../../components';
 import * as ImagePicker from 'expo-image-picker';
-import { navigationRef } from '../../../utilities/navigation/NavigationService';
+import { Context as UserContext } from '../../../context/UserContext'; 
 
-const SignUp7 = ({ route }) => {
+const SignUp7 = ({ route }) => { 
   const { email, petName, petType, breedType, petAge, images, petBio, healthInfo, name, age, location } = route.params;
+  const { state, createUser } = useContext(UserContext); 
   const [userImages, setUserImages] = useState([null, null]);
   const [bio, setBio] = useState('');
   const [errors, setErrors] = useState('');
@@ -35,12 +36,12 @@ const SignUp7 = ({ route }) => {
   // edit this to save information to the user context and navigate to the main dashboard as sign up is complete 
   const handleSubmit = () => {
     if (userImages.some(image => image === null)) {
-      setErrors('Please upload both pictures and enter your bio (optional)');
+      setErrors('Please upload both pictures and enter your bio (optional)'); 
     } else {
       setErrors('');
-      navigationRef.navigate('NextScreen', { email, petName, petType, breedType, petAge, images, petBio, healthInfo, name, age, location, userImages, bio });
+      createUser({ email, petName, petType, breedType, petAge, images, petBio, healthInfo, name, age, location, userImages, bio }); 
     }
-  };
+  }; 
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -68,6 +69,7 @@ const SignUp7 = ({ route }) => {
       <HeightSpacer height={20} />
       <ReusableTouchable btnText="Submit" onPress={handleSubmit} width={200} textColor="white" backgroundColor="red" borderWidth={1} borderColor="red" />
       {errors ? <Text style={styles.errorText}>{errors}</Text> : null}
+      {state.errorMessage ? <Text style={styles.errorText}>{state.errorMessage}</Text> : null} 
     </View>
     </TouchableWithoutFeedback>
   );

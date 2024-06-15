@@ -1,10 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useContext } from 'react'
+import { Context as UserContext } from '../../context/UserContext'; 
 
 const MainDashboard = () => {
+  const { state } = useContext(UserContext); 
+  console.log(state); 
+
   return (
     <View>
-      <Text>MainDashboard</Text>
+      <Text>{state.userId}</Text>
     </View>
   )
 }
