@@ -1,11 +1,11 @@
 import React, { useContext, useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import Carousel from 'react-native-snap-carousel'; // Ensure you have installed this package
-import { Context as UserContext } from '../context/UserContext'; // Adjust path as necessary
+import { StyleSheet, Image, View, FlatList, ScrollView } from 'react-native';
+import { Context as UserContext } from '../context/UserContext';
+import { ReusableText } from '../components/index'; 
 
 const PetCarousel = () => {
   const { state, fetchUsersForCarousel } = useContext(UserContext);
-  const { userId, carouselUsers } = state; // Assuming carouselUsers is added to your state by the reducer
+  const { userId, carouselUsers } = state;
 
   useEffect(() => {
     if (userId) {
@@ -13,23 +13,55 @@ const PetCarousel = () => {
     }
   }, [userId]);
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({ item }) => {
+    if (!item.pets || item.pets.length === 0) {
+      console.log('No pets available for this user:', item);
+      return <View style={styles.noPets}><ReusableText text="No Pets Available" /></View>;
+    }
+
+    const pet = item.pets[0]; // Assuming you want to display the first pet
+
     return (
-      <View style={styles.itemContainer}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.bio}>{item.bio}</Text>
-        {/* Add more details as needed */}
-      </View>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.container}>
+          <View style={styles.imageContainer}>
+            <Image style={styles.image} source={{ uri: pet.petPics[0] }} />
+            <View style={styles.overlay}>
+              <ReusableText style={styles.text} text={`${pet.petName}, ${pet.petAge} Years Old`} color="white" fontSize={20} />
+            </View>
+          </View>
+
+          <View style={styles.breedContainer}>
+            <View style={styles.infoBox}>
+              <ReusableText text={`Type: ${pet.type}`} color="black" fontSize={20} />
+            </View>
+            <View style={styles.infoBox}>
+              <ReusableText text={`Breed: ${pet.breed}`} color="black" fontSize={20} />
+            </View>
+          </View>
+
+          {pet.petPics.slice(1).map((pic, index) => (
+            <View key={index} style={styles.imageContainer}>
+              <Image style={styles.image} source={{ uri: pic }} />
+            </View>
+          ))}
+
+          <View style={styles.bioContainer}>
+            <ReusableText text={pet.bio} />
+          </View>
+        </View>
+      </ScrollView>
     );
   };
 
   return (
     <View style={styles.container}>
-      <Carousel
+      <FlatList
         data={carouselUsers}
         renderItem={renderItem}
-        sliderWidth={300} // Adjust based on your layout
-        itemWidth={300} // Adjust based on your layout
+        keyExtractor={(item, index) => item.userId || String(index)}
+        showsVerticalScrollIndicator={false}
+        style={styles.flatList}
       />
     </View>
   );
@@ -40,25 +72,68 @@ export default PetCarousel;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    padding: 6,
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  flatList: {
+    flexGrow: 0,
+    width: '100%',
+  },
+  imageContainer: {
+    height: 325,
+    width: '100%',
+    marginBottom: 10,
+  },
+  image: {
+    height: '100%',
+    width: '100%',
+    resizeMode: 'cover',
+  },
+  overlay: {
+    justifyContent: "center",
+    height: "15%",
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     padding: 10,
   },
-  itemContainer: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 20,
-    elevation: 5,
-    shadowColor: '#000',
-    shadowRadius: 5,
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 2 },
+  breedContainer: {
+    flexDirection: 'row',
+    width: "100%",
+    justifyContent: 'space-around',
+    marginBottom: 10
   },
-  name: {
+  infoBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    borderColor: "gray",
+    borderWidth: 1,
+    margin: 5,
+  },
+  bioContainer: {
+    width: '100%',
+    padding: 10,
+    marginBottom: 5,
+    borderColor: 'gray',
+    borderWidth: 1
+  },
+  noPets: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  text: {
     fontSize: 20,
-    fontWeight: 'bold',
-  },
-  bio: {
-    fontSize: 16,
-  },
+    color: 'white',
+  }
 }); 

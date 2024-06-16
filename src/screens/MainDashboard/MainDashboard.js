@@ -1,13 +1,13 @@
-import { Text, View } from 'react-native'
-import React, { useContext } from 'react'
-import { Context as UserContext } from '../../context/UserContext'; 
+import React from 'react';
+import { Text, View } from 'react-native';
+import PetCarousel from '../../components/PetCarousel'; 
 
 const MainDashboard = () => {
-
   return (
-    <View>
+    <View style={{ flex: 1 }}>  
+      <PetCarousel />
     </View>
-  )
-} 
+  );
+};
 
-export default MainDashboard 
+export default MainDashboard; 

@@ -1,5 +1,5 @@
 import { db } from '../utilities/api/firebase';
-import { collection, query, where, getDocs, setDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, setDoc, doc, FieldPath } from 'firebase/firestore';
 import { navigationRef } from "../utilities/navigation/NavigationService";
 import createDataContext from "./createDataContext"; 
 import uuid from 'react-native-uuid'; 
@@ -24,6 +24,11 @@ const userReducer = (state, action) => {
                 ...state,
                 ...action.payload 
             }; 
+        case 'set_carousel_users':
+            return {
+                ...state,
+                carouselUsers: action.payload
+            };
         case 'record_decision':
             return {
                 ...state,
@@ -146,14 +151,15 @@ const fetchUsersForCarousel = (dispatch) => async (currentUserId) => {
         const excludedUserIds = decisionsSnapshot.docs.map(doc => doc.id);
         excludedUserIds.push(currentUserId); // Also exclude the current user's ID
 
-        // Now, fetch other users excluding the ones in excludedUserIds
+        // Fetch all users
         const usersRef = collection(db, 'usersInfo');
-        const q = query(usersRef, where(firebase.firestore.FieldPath.documentId(), 'not-in', excludedUserIds));
-        const querySnapshot = await getDocs(q);
+        const allUsersSnapshot = await getDocs(usersRef);
 
         const users = [];
-        querySnapshot.forEach(doc => {
-            users.push(doc.data());
+        allUsersSnapshot.forEach(doc => {
+            if (!excludedUserIds.includes(doc.id)) { // Filter out excluded users client-side
+                users.push(doc.data());
+            }
         });
 
         // Dispatch an action to store these users in state or handle them as needed
