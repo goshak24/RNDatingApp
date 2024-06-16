@@ -1,7 +1,7 @@
 import { db } from '../utilities/api/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore'; 
+import { collection, query, where, getDocs, setDoc } from 'firebase/firestore';
 import { navigationRef } from "../utilities/navigation/NavigationService";
-import createDataContext from "./createDataContext";
+import createDataContext from "./createDataContext"; 
 import uuid from 'react-native-uuid'; 
 
 const userReducer = (state, action) => { 
@@ -18,6 +18,19 @@ const userReducer = (state, action) => {
                 bio: action.payload.bio,
                 preferences: {}, 
                 pets: action.payload.pets && action.payload.pets.length > 0 ? [action.payload.pets[0]] : [] 
+            };
+        case 'load_user_data': // loads user data on sign in into state 
+            return { 
+                ...state,
+                ...action.payload 
+            }; 
+        case 'record_decision':
+            return {
+                ...state,
+                decisions: {
+                    ...state.decisions,
+                    [action.payload.targetUserId]: action.payload.decisionType
+                }
             };
         case 'add_error': 
             return { ...state, errorMessage: action.payload }
@@ -75,8 +88,26 @@ const createUser = (dispatch) => async ({email, petName, petType, breedType, pet
     } 
 }; 
 
-const fetchUserData = (dispatch) => () => {
-    // Implement fetch user data logic here
+const fetchUserDataByEmail = (dispatch) => async (email) => {
+    try {
+        const usersRef = collection(db, 'usersInfo');
+        const q = query(usersRef, where('email', '==', email));
+        const querySnapshot = await getDocs(q);
+        
+        if (!querySnapshot.empty) {
+            const userDoc = querySnapshot.docs[0];
+            dispatch({
+                type: 'load_user_data',
+                payload: userDoc.data()
+            });
+        } else {
+            console.log("No such user document!");
+            dispatch({ type: 'add_error', payload: 'No user data found' });
+        }
+    } catch (err) {
+        console.error("Error fetching user data by email: ", err);
+        dispatch({ type: 'add_error', payload: 'Failed to fetch user data' });
+    }
 }; 
 
 const updateUser = (dispatch) => () => {
@@ -87,12 +118,62 @@ const deleteUser = (dispatch) => () => {
     // Implement delete user logic here
 };
 
+const recordDecision = (dispatch) => async (userId, targetUserId, decisionType) => {
+    try {
+        const decisionPath = doc(db, 'users', userId, 'decisions', targetUserId);
+        const decisionData = {
+            type: decisionType, // 'like' or 'pass'
+            timestamp: serverTimestamp()
+        };
+
+        await setDoc(decisionPath, decisionData);
+
+        dispatch({
+            type: 'record_decision',
+            payload: { targetUserId, decisionType }
+        });
+    } catch (err) {
+        console.error("Error recording decision: ", err);
+        dispatch({ type: 'add_error', payload: 'Failed to record decision' });
+    }
+};  
+
+const fetchUsersForCarousel = (dispatch) => async (currentUserId) => {
+    try {
+        // First, fetch the decisions to get the IDs of excluded users
+        const decisionsRef = collection(db, 'users', currentUserId, 'decisions');
+        const decisionsSnapshot = await getDocs(decisionsRef);
+        const excludedUserIds = decisionsSnapshot.docs.map(doc => doc.id);
+        excludedUserIds.push(currentUserId); // Also exclude the current user's ID
+
+        // Now, fetch other users excluding the ones in excludedUserIds
+        const usersRef = collection(db, 'usersInfo');
+        const q = query(usersRef, where(firebase.firestore.FieldPath.documentId(), 'not-in', excludedUserIds));
+        const querySnapshot = await getDocs(q);
+
+        const users = [];
+        querySnapshot.forEach(doc => {
+            users.push(doc.data());
+        });
+
+        // Dispatch an action to store these users in state or handle them as needed
+        dispatch({
+            type: 'set_carousel_users',
+            payload: users
+        });
+
+    } catch (err) {
+        console.error("Error fetching users for carousel: ", err);
+        dispatch({ type: 'add_error', payload: 'Failed to fetch users for carousel' });
+    }
+}; 
+
 export const { Provider, Context } = createDataContext(
     userReducer, 
-    { createUser, fetchUserData, updateUser, deleteUser }, 
+    { createUser, fetchUserDataByEmail, updateUser, deleteUser, recordDecision, fetchUsersForCarousel }, 
     { userId: '', email: '', name: '', age: '', location: '', userImages: [], bio: '',  
         preferences: {}, 
         pets: [{
             petId: '', petName: '', type: '', breed: '', petAge: '', petPics: [], bio: '', healthInfo: "", 
-        }], errorMessage: '' }
-);
+        }], decisions: {}, errorMessage: '' } 
+); 

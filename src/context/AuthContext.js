@@ -1,5 +1,3 @@
-import { db } from '../utilities/api/firebase';
-import { doc, getDoc } from 'firebase/firestore';   
 import createDataContext from "./createDataContext";
 import tempServerApi from "../utilities/api/tempServerApi"; 
 import { navigationRef } from "../utilities/navigation/NavigationService";
@@ -36,7 +34,7 @@ const tryLocalSignIn = (dispatch) => async () => {
     }; 
 } 
 
-const signin = (dispatch) => async ({email, password}) => {
+const signin = (dispatch) => async ({email, password}, callback) => {
     try {
         const response = await tempServerApi.post('/signin', {email, password})
         dispatch({ type: 'signin', payload: response.data.token }); 
@@ -44,11 +42,12 @@ const signin = (dispatch) => async ({email, password}) => {
         await AsyncStorage.setItem('isSignUpComplete', 'false');
         
         navigationRef.navigate('MainStack'); 
+        if (callback) callback(); 
     } catch (err) {
         dispatch({ type: 'add_error', payload: 'Sign in failed' });
     }
     
-}
+} 
 
 const signup = (dispatch) => async ({ email, password }) => {
     

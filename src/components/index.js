@@ -11,5 +11,5 @@ export {
     ReusableTextInput, 
     ReusableTouchable, 
     HeightSpacer,
-    ReusableModal
+    ReusableModal, 
 }; 

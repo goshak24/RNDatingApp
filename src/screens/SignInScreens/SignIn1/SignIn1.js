@@ -3,13 +3,13 @@ import React, { useState, useContext } from 'react'
 import { ReusableText, HeightSpacer, ReusableTouchable } from '../../../components' 
 import ReusableForm from '../../../components/reusable/ReusableForm'
 import { Context as AuthContext } from '../../../context/AuthContext'; 
-
+import { Context as UserContext } from '../../../context/UserContext'; 
 
 const SignIn1 = () => {
   const [email, setEmail] = useState(''); 
   const [password, setPassword] = useState(''); 
-  const [error, setError] = useState(''); 
-  const { state, signin } = useContext(AuthContext); 
+  const { state: authState, signin } = useContext(AuthContext); 
+  const { fetchUserDataByEmail } = useContext(UserContext); 
 
   const fields = [
     {
@@ -27,19 +27,25 @@ const SignIn1 = () => {
     },
   ]; 
 
+  const handleSignIn = () => {
+    signin({ email, password }, () => {
+        fetchUserDataByEmail(email); // Fetch user data after successful sign-in
+    });
+}; 
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <View style={styles.container}>
-      <ReusableText text="Sign In" color="black" fontSize={32} fontFamily="Arial" />
-      <HeightSpacer height={15} /> 
-      <ReusableForm
-      fields={fields}
-      onSubmit={() => signin({email, password})} 
-      buttonText="Sign In" 
-      /> 
-      <ReusableTouchable btnText="Sign In" onPress={() => signin({ email, password })}  width={200} textColor="white" backgroundColor="red" borderWidth={1} borderColor="red" /> 
-      {state.errorMessage ? <ReusableText text={state.errorMessage} color="red" /> : null} 
-    </View>
+      <View style={styles.container}>
+        <ReusableText text="Sign In" color="black" fontSize={32} fontFamily="Arial" />
+        <HeightSpacer height={15} /> 
+        <ReusableForm
+          fields={fields}
+          onSubmit={handleSignIn} 
+          buttonText="Sign In" 
+        /> 
+        <ReusableTouchable btnText="Sign In" onPress={handleSignIn} width={200} textColor="white" backgroundColor="red" borderWidth={1} borderColor="red" /> 
+        {authState.errorMessage ? <ReusableText text={authState.errorMessage} color="red" /> : null} 
+      </View>
     </TouchableWithoutFeedback>   
   )
 }

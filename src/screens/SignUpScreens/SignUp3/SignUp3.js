@@ -36,7 +36,7 @@ const SignUp3 = ({ route }) => {
       setErrors('Please upload all 4 pictures');
     } else {
       setErrors(''); 
-      navigationRef.navigate('SignUp4', { email, petName, petType, breedType, images });
+      navigationRef.navigate('SignUp4', { email, petName, petType, breedType, petAge, images });
     }
   }; 
 
