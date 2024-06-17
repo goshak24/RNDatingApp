@@ -27,7 +27,8 @@
     "react-native-screens": "^3.31.1",
     "react-native-snap-carousel": "^3.9.1",
     "react-native-uuid": "^2.0.2",
-    "uuidv4": "^6.2.13"
+    "uuidv4": "^6.2.13",
+    "expo-location": "~17.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

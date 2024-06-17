@@ -9,7 +9,7 @@ const SignUp6 = ({ route }) => {
     const [name, setName] = useState('');
     const [age, setAge] = useState('');
     const [location, setLocation] = useState('');
-    const [errors, setErrors] = useState('');
+    const [errors, setErrors] = useState(''); 
 
   const fields = [
     {

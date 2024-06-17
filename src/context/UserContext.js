@@ -1,5 +1,6 @@
 import { db } from '../utilities/api/firebase';
-import { collection, query, where, getDocs, setDoc, doc, FieldPath } from 'firebase/firestore';
+import { collection, query, where, getDocs, setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import * as Location from 'expo-location'; 
 import { navigationRef } from "../utilities/navigation/NavigationService";
 import createDataContext from "./createDataContext"; 
 import uuid from 'react-native-uuid'; 
@@ -19,7 +20,7 @@ const userReducer = (state, action) => {
                 preferences: {}, 
                 pets: action.payload.pets && action.payload.pets.length > 0 ? [action.payload.pets[0]] : [] 
             };
-        case 'load_user_data': // loads user data on sign in into state 
+        case 'load_user_data': 
             return { 
                 ...state,
                 ...action.payload 
@@ -36,6 +37,13 @@ const userReducer = (state, action) => {
                     ...state.decisions,
                     [action.payload.targetUserId]: action.payload.decisionType
                 }
+            };
+        case 'update_location':
+            return { ...state, actualLocation: action.payload }; 
+        case 'set_matches':
+            return {
+                ...state,
+                matches: action.payload
             };
         case 'add_error': 
             return { ...state, errorMessage: action.payload }
@@ -155,7 +163,7 @@ const fetchUsersForCarousel = (dispatch) => async (currentUserId) => {
         const usersRef = collection(db, 'usersInfo');
         const allUsersSnapshot = await getDocs(usersRef);
 
-        const users = [];
+        const users = []; 
         allUsersSnapshot.forEach(doc => {
             if (!excludedUserIds.includes(doc.id)) { // Filter out excluded users client-side
                 users.push(doc.data());
@@ -174,12 +182,86 @@ const fetchUsersForCarousel = (dispatch) => async (currentUserId) => {
     }
 }; 
 
+const getLocationAsync = async (dispatch) => {
+    try {
+      // Request permission to access location
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        dispatch({ type: 'add_error', payload: 'Permission to access location was denied' });
+        return;
+      }
+  
+      // Get the current location
+      let location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+  
+      // Optionally, store the location in the user's state or context
+      dispatch({ type: 'update_location', payload: { latitude, longitude } });
+  
+      // Return the location data
+      return { latitude, longitude };
+    } catch (error) {
+      dispatch({ type: 'add_error', payload: 'Failed to get location' });
+      console.error(error);
+    }
+}; 
+
+const storeLocationInFirestore = async (userId, location, db) => {
+    try {
+      const userRef = doc(db, 'usersInfo', userId);
+      await setDoc(userRef, { location }, { merge: true });
+      console.log('Location updated in Firestore');
+    } catch (error) {
+      console.error('Error updating location in Firestore:', error);
+    }
+  }; 
+
+const fetchMatches = (dispatch) => async (currentUserId) => {
+    try {
+        const currentUserDecisionsRef = collection(db, 'users', currentUserId, 'decisions');
+        const currentUserDecisionsSnapshot = await getDocs(currentUserDecisionsRef);
+        const potentialMatches = [];
+
+        for (const decisionDoc of currentUserDecisionsSnapshot.docs) {
+            const decisionData = decisionDoc.data();
+            if (decisionData.type === 'like') {
+                const targetUserId = decisionDoc.id;
+                const targetUserDecisionsRef = collection(db, 'users', targetUserId, 'decisions');
+                const targetUserDecisionsSnapshot = await getDocs(targetUserDecisionsRef);
+
+                const targetUserLikesCurrentUser = targetUserDecisionsSnapshot.docs.some(doc => doc.id === currentUserId && doc.data().type === 'like');
+
+                if (targetUserLikesCurrentUser) {
+                    potentialMatches.push(targetUserId);
+                }
+            }
+        }
+
+        const matches = [];
+        for (const userId of potentialMatches) {
+            const userDocRef = doc(db, 'usersInfo', userId);
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+                matches.push(userDoc.data());
+            }
+        }
+
+        dispatch({
+            type: 'set_matches',
+            payload: matches
+        });
+    } catch (err) {
+        console.error("Error fetching matches: ", err);
+        dispatch({ type: 'add_error', payload: 'Failed to fetch matches' });
+    }
+}; 
+
 export const { Provider, Context } = createDataContext(
     userReducer, 
-    { createUser, fetchUserDataByEmail, updateUser, deleteUser, recordDecision, fetchUsersForCarousel }, 
+    { createUser, fetchUserDataByEmail, updateUser, deleteUser, recordDecision, fetchUsersForCarousel, fetchMatches }, 
     { userId: '', email: '', name: '', age: '', location: '', userImages: [], bio: '',  
         preferences: {}, 
         pets: [{
             petId: '', petName: '', type: '', breed: '', petAge: '', petPics: [], bio: '', healthInfo: "", 
-        }], decisions: {}, errorMessage: '' } 
+        }], decisions: {}, actualLocation: {}, errorMessage: '', matches: [] } 
 ); 

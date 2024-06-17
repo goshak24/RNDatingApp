@@ -1,6 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import React from 'react';
 
+// Should be reusable button 
 const ReusableTouchable = ({ onPress, btnText, textColor, width, backgroundColor, borderWidth, borderColor }) => { 
     const styles = StyleSheet.create({
         container: {

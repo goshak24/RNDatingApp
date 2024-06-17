@@ -19,7 +19,7 @@ const PetCarousel = () => {
       return <View style={styles.noPets}><ReusableText text="No Pets Available" /></View>;
     }
 
-    const pet = item.pets[0]; // Assuming you want to display the first pet
+    const pet = item.pets[0]; 
 
     return (
       <ScrollView style={styles.scrollView}>
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     height: 325,
     width: '100%',
-    marginBottom: 10,
+    marginBottom: 5,
   },
   image: {
     height: '100%',
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     width: "100%",
     justifyContent: 'space-around',
-    marginBottom: 10
+    marginBottom: 5
   },
   infoBox: {
     flex: 1,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderColor: "gray",
     borderWidth: 1,
-    margin: 5,
+    marginVertical: 5
   },
   bioContainer: {
     width: '100%',
