@@ -1,5 +1,5 @@
 import { db } from '../utilities/api/firebase';
-import { collection, query, where, getDocs, setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDoc, setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import * as Location from 'expo-location'; 
 import { navigationRef } from "../utilities/navigation/NavigationService";
 import createDataContext from "./createDataContext"; 
@@ -52,7 +52,7 @@ const userReducer = (state, action) => {
     } 
 }; 
 
-const createUser = (dispatch) => async ({email, petName, petType, breedType, petAge, images, petBio, healthInfo, name, age, location, userImages, bio}) => { 
+const createUser = (dispatch) => async ({email, petName, petType, breedType, petAge, images, petBio, healthInfo, name, age, location, userImages, bio}) => {
     if (!db) {
         dispatch({ type: 'add_error', payload: 'Database not initialized' });
         return;
@@ -63,6 +63,13 @@ const createUser = (dispatch) => async ({email, petName, petType, breedType, pet
         return;
     }
 
+    const locationData = await getLocationAsync(dispatch);
+    console.log(locationData); 
+    if (!locationData) {
+        // Handle error or decide to proceed without location
+        console.log('Proceeding without location data');
+    }
+
     try {
         const userId = uuid.v4();
         const petId = uuid.v4();
@@ -70,38 +77,32 @@ const createUser = (dispatch) => async ({email, petName, petType, breedType, pet
             userId,
             email,
             name,
-            age: Number(age), 
-            location,
-            userImages: userImages, 
+            age: Number(age),
+            location: locationData, 
+            userImages: userImages,
             bio,
-            preferences: {}, // Preferences are empty initially 
+            preferences: {},
             pets: [{
                 petId,
                 petName,
                 type: petType,
                 breed: breedType,
-                petAge: Number(petAge), 
+                petAge: Number(petAge),
                 petPics: images,
                 bio: petBio,
-                healthInfo, 
-            }] 
-        }; 
+                healthInfo,
+            }]
+        };
 
-        // Store user data in Firestore using the new modular approach
         await setDoc(doc(db, 'usersInfo', userId), userPayload);
-
-        dispatch({ 
-            type: 'createUser',
-            payload: userPayload
-        }); 
-
-        navigationRef.navigate('MainStack'); 
+        dispatch({ type: 'createUser', payload: userPayload });
+        navigationRef.navigate('MainStack');
     } catch (err) {
-        dispatch({ type: 'add_error', payload: err.message || 'Failed creating a user' }); 
-    } 
-}; 
+        dispatch({ type: 'add_error', payload: err.message || 'Failed creating a user' });
+    }
+};
 
-const fetchUserDataByEmail = (dispatch) => async (email) => {
+const fetchUserDataByEmail = (dispatch) => async (email) => { // used in sign in 
     try {
         const usersRef = collection(db, 'usersInfo');
         const q = query(usersRef, where('email', '==', email));
@@ -153,29 +154,51 @@ const recordDecision = (dispatch) => async (userId, targetUserId, decisionType) 
 
 const fetchUsersForCarousel = (dispatch) => async (currentUserId) => {
     try {
-        // First, fetch the decisions to get the IDs of excluded users
+        const currentUserRef = doc(db, 'usersInfo', currentUserId);
+        const currentUserDoc = await getDoc(currentUserRef);
+        if (!currentUserDoc.exists()) {
+            console.log("Current user document does not exist");
+            return;
+        }
+        const currentUserData = currentUserDoc.data();
+        const { latitude, longitude } = currentUserData.location;
+
+        // Define the geographical range
+        const latRange = 0.07; // Roughly equal to 5 miles
+        const longRange = 0.07; // Roughly equal to 5 miles
+        const minLat = latitude - latRange;
+        const maxLat = latitude + latRange;
+        const minLong = longitude - longRange;
+        const maxLong = longitude + longRange;
+
+        // Fetch decisions to get the IDs of excluded users
         const decisionsRef = collection(db, 'users', currentUserId, 'decisions');
         const decisionsSnapshot = await getDocs(decisionsRef);
         const excludedUserIds = decisionsSnapshot.docs.map(doc => doc.id);
         excludedUserIds.push(currentUserId); // Also exclude the current user's ID
 
-        // Fetch all users
+        // Query for users within the geographical range
         const usersRef = collection(db, 'usersInfo');
-        const allUsersSnapshot = await getDocs(usersRef);
+        const geoQuery = query(usersRef,
+            where('location.latitude', '>=', minLat),
+            where('location.latitude', '<=', maxLat),
+            where('location.longitude', '>=', minLong),
+            where('location.longitude', '<=', maxLong)
+        );
 
-        const users = []; 
-        allUsersSnapshot.forEach(doc => {
-            if (!excludedUserIds.includes(doc.id)) { // Filter out excluded users client-side
-                users.push(doc.data());
+        const querySnapshot = await getDocs(geoQuery);
+
+        const nearbyUsers = [];
+        querySnapshot.forEach(doc => {
+            if (!excludedUserIds.includes(doc.id)) { // Exclude users based on decisions and current user
+                nearbyUsers.push(doc.data());
             }
         });
 
-        // Dispatch an action to store these users in state or handle them as needed
         dispatch({
             type: 'set_carousel_users',
-            payload: users
+            payload: nearbyUsers
         });
-
     } catch (err) {
         console.error("Error fetching users for carousel: ", err);
         dispatch({ type: 'add_error', payload: 'Failed to fetch users for carousel' });
