@@ -102,7 +102,7 @@ const createUser = (dispatch) => async ({email, petName, petType, breedType, pet
     }
 };
 
-const fetchUserDataByEmail = (dispatch) => async (email) => { // used in sign in 
+const fetchUserDataByEmail = (dispatch) => async (email) => {
     try {
         const usersRef = collection(db, 'usersInfo');
         const q = query(usersRef, where('email', '==', email));
@@ -112,14 +112,12 @@ const fetchUserDataByEmail = (dispatch) => async (email) => { // used in sign in
             const userDoc = querySnapshot.docs[0];
             dispatch({
                 type: 'load_user_data',
-                payload: userDoc.data()
+                payload: { ...userDoc.data(), email }  
             });
         } else {
-            console.log("No such user document!");
             dispatch({ type: 'add_error', payload: 'No user data found' });
         }
     } catch (err) {
-        console.error("Error fetching user data by email: ", err);
         dispatch({ type: 'add_error', payload: 'Failed to fetch user data' });
     }
 }; 
@@ -248,8 +246,6 @@ const storeLocationInFirestore = async (userId, location, db) => {
             .filter(doc => doc.data().type.toLowerCase() === 'like')  // Ensure case insensitivity
             .map(doc => doc.id);
 
-        console.log("Liked User IDs:", likedUserIds); // Debugging log
-
         const potentialMatches = [];
 
         // Check if these liked users also liked the current user
@@ -264,8 +260,6 @@ const storeLocationInFirestore = async (userId, location, db) => {
             }
         }
 
-        console.log("Potential Matches:", potentialMatches); // Debugging log
-
         // Fetch user details for each match
         const matches = [];
         for (const userId of potentialMatches) {
@@ -275,8 +269,6 @@ const storeLocationInFirestore = async (userId, location, db) => {
                 matches.push(userDoc.data());
             }
         }
-
-        console.log("Final Matches:", matches); // Debugging log
 
         // Dispatch the matches to the state
         dispatch({

@@ -18,7 +18,7 @@ const Matches = () => {
   }, [isFocused]); 
 
   const handlePress = (userId) => {
-    navigationRef.navigate('Chat', { userId }); 
+    navigationRef.navigate('MatchesStack', { userId }); 
   };
 
   const renderItem = ({ item }) => {

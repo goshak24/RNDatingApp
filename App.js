@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { navigationRef } from './src/utilities/navigation/NavigationService';
 import { Provider as AuthProvider } from './src/context/AuthContext'; 
 import { Provider as UserProvider } from './src/context/UserContext'; 
+import { Provider as ChatProvider } from './src/context/ChatContext'; 
 
 // Header Icons 
 import { Ionicons } from '@expo/vector-icons'; 
@@ -27,6 +28,7 @@ import EditProfile from './src/screens/EditProfile/EditProfile';
 import Settings from './src/screens/Settings/Settings';
 import Calendar from './src/screens/Calendar/Calendar';
 import Matches from './src/screens/Matches/Matches';
+import Chat from './src/screens/Chat/Chat';
 import MatchProfile from './src/screens/MatchProfile/MatchProfile'; 
 
 // Stacks
@@ -35,6 +37,7 @@ const AuthStack = createStackNavigator();
 const SignInStack = createStackNavigator(); 
 const SignUpStack = createStackNavigator(); 
 const MainStack = createBottomTabNavigator(); 
+const MatchesStack = createStackNavigator(); 
 const MainStackHeader = createStackNavigator(); 
 
 const SignInStackScreen = () => {
@@ -89,6 +92,14 @@ const MainStackScreen = () => {
   )
 } 
 
+const MatchesStackScreen = () => {
+  return (
+    <MatchesStack.Navigator screenOptions={{headerShown: false}}>
+      <MatchesStack.Screen name="Chat" component={Chat} />
+    </MatchesStack.Navigator>
+  );
+};  
+
 const MainStackHeaderScreen = () => {
   return (
     <MainStackHeader.Navigator>
@@ -104,6 +115,7 @@ const App = () => {
         <RootStack.Screen name="Onboarding" component={Onboarding} /> 
         <RootStack.Screen name="AuthStack" component={AuthStackScreen} />
         <RootStack.Screen name="MainStack" component={MainStackScreen} />
+        <RootStack.Screen name="MatchesStack" component={MatchesStackScreen} />
         <RootStack.Screen name="MainStackHeader" component={MainStackHeaderScreen} /> 
       </RootStack.Navigator>
     </NavigationContainer>
@@ -114,7 +126,9 @@ export default () => {
   return (
     <AuthProvider>
       <UserProvider>
-        <App />    
+        <ChatProvider>
+          <App />     
+        </ChatProvider>
       </UserProvider> 
     </AuthProvider>
   )

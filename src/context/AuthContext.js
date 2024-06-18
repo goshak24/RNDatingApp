@@ -20,19 +20,22 @@ const authReducer = (state, action) => {
     }
 } 
 
-const tryLocalSignIn = (dispatch) => async () => { 
-    const token = await AsyncStorage.getItem('token'); 
+const tryLocalSignIn = (dispatch, fetchUserData, email) => async () => {
+    const token = await AsyncStorage.getItem('token');
     const isSignUpComplete = await AsyncStorage.getItem('isSignUpComplete') === 'true';
 
-    if (token) {
-        dispatch({ type: 'signin', payload: token }); 
+    if (token && email) {
+        dispatch({ type: 'signin', payload: token });
+        fetchUserData(dispatch)(email);  // Fetch user data using the email
         if (isSignUpComplete) {
             navigationRef.navigate('MainStack');
+        } else {
+            navigationRef.navigate('SignUpStack');  // Navigate to complete sign-up if needed
         }
     } else {
-        navigationRef.navigate('Onboarding');   
-    }; 
-} 
+        navigationRef.navigate('Onboarding');
+    }
+};
 
 const signin = (dispatch) => async ({email, password}, callback) => {
     try {
