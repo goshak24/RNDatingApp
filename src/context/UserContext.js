@@ -239,27 +239,34 @@ const storeLocationInFirestore = async (userId, location, db) => {
     }
   }; 
 
-const fetchMatches = (dispatch) => async (currentUserId) => {
+  const fetchMatches = (dispatch) => async (currentUserId) => {
     try {
+        // Fetch current user's decisions where they liked someone
         const currentUserDecisionsRef = collection(db, 'users', currentUserId, 'decisions');
         const currentUserDecisionsSnapshot = await getDocs(currentUserDecisionsRef);
+        const likedUserIds = currentUserDecisionsSnapshot.docs
+            .filter(doc => doc.data().type.toLowerCase() === 'like')  // Ensure case insensitivity
+            .map(doc => doc.id);
+
+        console.log("Liked User IDs:", likedUserIds); // Debugging log
+
         const potentialMatches = [];
 
-        for (const decisionDoc of currentUserDecisionsSnapshot.docs) {
-            const decisionData = decisionDoc.data();
-            if (decisionData.type === 'like') {
-                const targetUserId = decisionDoc.id;
-                const targetUserDecisionsRef = collection(db, 'users', targetUserId, 'decisions');
-                const targetUserDecisionsSnapshot = await getDocs(targetUserDecisionsRef);
+        // Check if these liked users also liked the current user
+        for (const targetUserId of likedUserIds) {
+            const targetUserDecisionsRef = collection(db, 'users', targetUserId, 'decisions');
+            const targetUserDecisionsSnapshot = await getDocs(targetUserDecisionsRef);
+            const targetUserLikesCurrentUser = targetUserDecisionsSnapshot.docs
+                .some(doc => doc.id === currentUserId && doc.data().type.toLowerCase() === 'like');
 
-                const targetUserLikesCurrentUser = targetUserDecisionsSnapshot.docs.some(doc => doc.id === currentUserId && doc.data().type === 'like');
-
-                if (targetUserLikesCurrentUser) {
-                    potentialMatches.push(targetUserId);
-                }
+            if (targetUserLikesCurrentUser) {
+                potentialMatches.push(targetUserId);
             }
         }
 
+        console.log("Potential Matches:", potentialMatches); // Debugging log
+
+        // Fetch user details for each match
         const matches = [];
         for (const userId of potentialMatches) {
             const userDocRef = doc(db, 'usersInfo', userId);
@@ -269,6 +276,9 @@ const fetchMatches = (dispatch) => async (currentUserId) => {
             }
         }
 
+        console.log("Final Matches:", matches); // Debugging log
+
+        // Dispatch the matches to the state
         dispatch({
             type: 'set_matches',
             payload: matches

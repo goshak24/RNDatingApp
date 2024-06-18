@@ -1,11 +1,12 @@
-import React, { useContext, useEffect } from 'react';
-import { StyleSheet, Image, View, FlatList, ScrollView } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { StyleSheet, TouchableOpacity, Text, Image, View, ScrollView } from 'react-native';
 import { Context as UserContext } from '../context/UserContext';
 import { ReusableText } from '../components/index'; 
 
 const PetCarousel = () => {
-  const { state, fetchUsersForCarousel } = useContext(UserContext);
+  const { state, recordDecision, fetchUsersForCarousel } = useContext(UserContext);
   const { userId, carouselUsers } = state;
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (userId) {
@@ -13,61 +14,75 @@ const PetCarousel = () => {
     }
   }, [userId]);
 
-  const renderItem = ({ item }) => {
-    if (!item.pets || item.pets.length === 0) {
-      console.log('No pets available for this user:', item);
-      return <View style={styles.noPets}><ReusableText text="No Pets Available" /></View>;
+  const handleDecision = async (decisionType) => {
+    if (carouselUsers && carouselUsers.length > 0) {
+      const targetUserId = carouselUsers[currentIndex]?.userId;
+      if (targetUserId) {
+        await recordDecision(userId, targetUserId, decisionType);
+        if (currentIndex < carouselUsers.length - 1) {
+          setCurrentIndex(currentIndex + 1);
+        } else {
+          fetchUsersForCarousel(userId);
+          setCurrentIndex(0);
+        }
+      }
     }
-
-    const pet = item.pets[0]; 
-
-    return (
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.container}>
-          <View style={styles.imageContainer}>
-            <Image style={styles.image} source={{ uri: pet.petPics[0] }} />
-            <View style={styles.overlay}>
-              <ReusableText style={styles.text} text={`${pet.petName}, ${pet.petAge} Years Old`} color="white" fontSize={20} />
-            </View>
-          </View>
-
-          <View style={styles.breedContainer}>
-            <View style={styles.infoBox}>
-              <ReusableText text={`Type: ${pet.type}`} color="black" fontSize={20} />
-            </View>
-            <View style={styles.infoBox}>
-              <ReusableText text={`Breed: ${pet.breed}`} color="black" fontSize={20} />
-            </View>
-          </View>
-
-          {pet.petPics.slice(1).map((pic, index) => (
-            <View key={index} style={styles.imageContainer}>
-              <Image style={styles.image} source={{ uri: pic }} />
-            </View>
-          ))}
-
-          <View style={styles.bioContainer}>
-            <ReusableText text={pet.bio} />
-          </View>
-        </View>
-      </ScrollView>
-    );
   };
+
+  if (!carouselUsers || carouselUsers.length === 0 || !carouselUsers[currentIndex]) {
+    return <View style={styles.noPets}><ReusableText text="No Pets Available" /></View>;
+  }
+
+  const currentItem = carouselUsers[currentIndex];
+  const pet = currentItem.pets && currentItem.pets[0];
+
+  if (!pet) {
+    return <View style={styles.noPets}><ReusableText text="No Pets Available" /></View>;
+  }
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={carouselUsers}
-        renderItem={renderItem}
-        keyExtractor={(item, index) => item.userId || String(index)}
-        showsVerticalScrollIndicator={false}
-        style={styles.flatList}
-      />
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.imageContainer}>
+          <Image style={styles.image} source={{ uri: pet.petPics[0] }} />
+          <View style={styles.overlay}>
+            <ReusableText style={styles.text} text={`${pet.petName}, ${pet.petAge} Years Old`} color="white" fontSize={20} />
+          </View>
+        </View>
+
+        <View style={styles.breedContainer}>
+          <View style={styles.infoBox}>
+            <ReusableText text={`Type: ${pet.type}`} color="black" fontSize={20} />
+          </View>
+          <View style={styles.infoBox}>
+            <ReusableText text={`Breed: ${pet.breed}`} color="black" fontSize={20} />
+          </View>
+        </View>
+
+        {pet.petPics.slice(1).map((pic, index) => (
+          <View key={index} style={styles.imageContainer}>
+            <Image style={styles.image} source={{ uri: pic }} />
+          </View>
+        ))}
+
+        <View style={styles.bioContainer}>
+          <ReusableText text={pet.bio} />
+        </View>
+      </ScrollView>
+
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.passButton} onPress={() => handleDecision('pass')}>
+          <Text>Pass</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.likeButton} onPress={() => handleDecision('like')}>
+          <Text>Like</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
-export default PetCarousel;
+export default PetCarousel; 
 
 const styles = StyleSheet.create({
   container: {
@@ -94,6 +109,25 @@ const styles = StyleSheet.create({
     width: '100%',
     resizeMode: 'cover',
   },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 10,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+  },
+  passButton: {
+    padding: 10,
+    backgroundColor: '#ddd',
+    borderRadius: 5
+  },
+  likeButton: {
+    padding: 10,
+    backgroundColor: '#ddd',
+    borderRadius: 5
+  }, 
   overlay: {
     justifyContent: "center",
     height: "15%",

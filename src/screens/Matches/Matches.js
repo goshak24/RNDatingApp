@@ -2,15 +2,20 @@ import { StyleSheet, View, FlatList, TouchableOpacity } from 'react-native'
 import React, { useContext, useEffect } from 'react'
 import { HeightSpacer, ReusableText } from '../../components'
 import { Context as UserContext } from '../../context/UserContext'; 
-import { navigationRef } from '../../utilities/navigation/NavigationService';
+import { navigationRef } from '../../utilities/navigation/NavigationService'; 
+import { useIsFocused } from '@react-navigation/native'; 
 
 const Matches = () => {
   const { state, fetchMatches } = useContext(UserContext);
   const { matches } = state;
 
+  const isFocused = useIsFocused();
+
   useEffect(() => {
-    fetchMatches(state.userId); 
-  }, []);
+    if (isFocused) {
+      fetchMatches(state.userId);
+    }
+  }, [isFocused]); 
 
   const handlePress = (userId) => {
     navigationRef.navigate('Chat', { userId }); 
@@ -20,8 +25,8 @@ const Matches = () => {
     return (
       <TouchableOpacity onPress={() => handlePress(item.userId)}>
         <View style={styles.matchItem}>
-          <ReusableText text={item.name} fontSize={18} color="black" />
-          <ReusableText text={item.bio} fontSize={18} color="grey" />
+          <ReusableText text={item.pets[0].petName} fontSize={18} color="black" />
+          <ReusableText text={item.pets[0].bio} fontSize={18} color="grey" />
         </View>
       </TouchableOpacity>
     );
