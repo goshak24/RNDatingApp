@@ -5,17 +5,15 @@ import ReusableText from '../../components/reusable/ReusableText'
 import { HeightSpacer, ReusableTouchable } from '../../components'
 import { navigationRef } from '../../utilities/navigation/NavigationService'
 import { Context as AuthContext } from '../../context/AuthContext'; 
-import { Context as UserContext } from '../../context/UserContext';
+import { Context as UserContext } from '../../context/UserContext'; 
 
 const Onboarding = () => {
-  const { tryLocalSignIn } = useContext(AuthContext); 
-  const { state, fetchUserDataByEmail } = useContext(UserContext);
+  const { tryLocalSignIn } = useContext(AuthContext);
+  const { fetchUserDataByEmail } = useContext(UserContext); 
 
   useEffect(() => {
-    if (state.email) {
-      tryLocalSignIn(fetchUserDataByEmail, state.email);  
-    }
-  }, [state.email]);  // Depend on state.email to re-run effect when email is set 
+       tryLocalSignIn(fetchUserDataByEmail);
+   }, []);
 
   return (
     <SafeAreaView style={styles.container}>

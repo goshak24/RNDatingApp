@@ -1,5 +1,5 @@
 import createDataContext from './createDataContext';
-import { collection, addDoc, getDocs, getDoc, query, where, orderBy, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, getDoc, query, where, orderBy, doc, updateDoc, serverTimestamp } from 'firebase/firestore'; 
 import { db } from '../utilities/api/firebase'; // Ensure this path is correct
 
 const chatReducer = (state, action) => {
@@ -23,25 +23,24 @@ const initializeChat = (dispatch) => async (chatId) => {
     const chatSnap = await getDoc(chatRef);
     if (chatSnap.exists()) {
         dispatch({ type: 'set_chat_data', payload: chatSnap.data() });
-    } else {
-        console.log('Chat not found');
     }
-};
+}; 
 
-const sendMessage = (dispatch) => async (chatId, senderId, text) => {
+const sendMessage = (dispatch) => async (chatId, senderId, senderName, text) => {
     const messageRef = collection(db, 'chats', chatId, 'messages');
     const newMessage = {
         senderId,
+        senderName,  
         text,
         timestamp: serverTimestamp()
     };
     await addDoc(messageRef, newMessage);
     dispatch({ type: 'add_message', payload: newMessage });
-};
+}; 
 
 const loadMessages = (dispatch) => async (chatId) => {
     const messagesRef = collection(db, 'chats', chatId, 'messages');
-    const q = query(messagesRef, orderBy('timestamp', 'desc'));
+    const q = query(messagesRef, orderBy('timestamp', 'asc'));
     const querySnapshot = await getDocs(q);
     const messages = querySnapshot.docs.map(doc => doc.data());
     dispatch({ type: 'set_chat_data', payload: { messages } });

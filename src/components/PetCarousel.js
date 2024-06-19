@@ -43,8 +43,8 @@ const PetCarousel = () => {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        <View style={styles.imageContainer}>
-          <Image style={styles.image} source={{ uri: pet.petPics[0] }} />
+        <View style={styles.imageContainer}>    
+        <Image style={styles.image} source={{ uri: pet.petPics[0] }} />
           <View style={styles.overlay}>
             <ReusableText style={styles.text} text={`${pet.petName}, ${pet.petAge} Years Old`} color="white" fontSize={20} />
           </View>

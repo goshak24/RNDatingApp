@@ -20,22 +20,31 @@ const authReducer = (state, action) => {
     }
 } 
 
-const tryLocalSignIn = (dispatch, fetchUserData, email) => async () => {
-    const token = await AsyncStorage.getItem('token');
-    const isSignUpComplete = await AsyncStorage.getItem('isSignUpComplete') === 'true';
+const tryLocalSignIn = (dispatch) => async (fetchUserData) => {
+    try {
+        const token = await AsyncStorage.getItem('token');
+        const email = await AsyncStorage.getItem('email');
+        await AsyncStorage.setItem('isSignUpComplete', 'true');
+        const isSignUpComplete = await AsyncStorage.getItem('isSignUpComplete'); 
 
-    if (token && email) {
-        dispatch({ type: 'signin', payload: token });
-        fetchUserData(dispatch)(email);  // Fetch user data using the email
-        if (isSignUpComplete) {
-            navigationRef.navigate('MainStack');
+        if (token && email) {
+            dispatch({ type: 'signin', payload: token });
+            await fetchUserData(email);  
+            if (!isSignUpComplete) {
+                // Set isSignUpComplete to true in AsyncStorage
+                await AsyncStorage.setItem('isSignUpComplete', 'true');
+                dispatch({ type: 'complete_signup' }); // Optionally dispatch an action if needed
+            }
+            navigationRef.navigate(isSignUpComplete ? 'MainStack' : 'AuthStack');
         } else {
-            navigationRef.navigate('SignUpStack');  // Navigate to complete sign-up if needed
+            navigationRef.navigate('Onboarding');
         }
-    } else {
-        navigationRef.navigate('Onboarding');
+    } catch (error) {
+        console.error('Error during local sign-in:', error);
+        console.log('fetchUserData type:', typeof fetchUserData); // Check the type of fetchUserData
+        dispatch({ type: 'add_error', payload: 'Failed during local sign-in' });
     }
-};
+}; 
 
 const signin = (dispatch) => async ({email, password}, callback) => {
     try {
@@ -43,7 +52,7 @@ const signin = (dispatch) => async ({email, password}, callback) => {
         dispatch({ type: 'signin', payload: response.data.token }); 
         await AsyncStorage.setItem('token', response.data.token); 
         await AsyncStorage.setItem('isSignUpComplete', 'false');
-        
+        await AsyncStorage.setItem('email', email);  
         navigationRef.navigate('MainStack'); 
         if (callback) callback(); 
     } catch (err) {
@@ -75,6 +84,7 @@ const signup = (dispatch) => async ({ email, password }) => {
     const response = await tempServerApi.post('/signup', { email, password });
         dispatch({ type: 'signup', payload: response.data.token })
         await AsyncStorage.setItem('token', response.data.token); 
+        await AsyncStorage.setItem('email', email);  
         navigationRef.navigate('SignUp2', { email }); 
     } catch (err) {
         dispatch({ type: 'add_error', payload: 'Sign up failed' })

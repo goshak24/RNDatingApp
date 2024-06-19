@@ -112,15 +112,16 @@ const fetchUserDataByEmail = (dispatch) => async (email) => {
             const userDoc = querySnapshot.docs[0];
             dispatch({
                 type: 'load_user_data',
-                payload: { ...userDoc.data(), email }  
+                payload: { ...userDoc.data(), email }
             });
         } else {
             dispatch({ type: 'add_error', payload: 'No user data found' });
         }
     } catch (err) {
+        console.error('Failed to fetch user data:', err);
         dispatch({ type: 'add_error', payload: 'Failed to fetch user data' });
     }
-}; 
+};
 
 const updateUser = (dispatch) => () => {
     // Implement update user logic here
