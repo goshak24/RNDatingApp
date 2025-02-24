@@ -111,7 +111,7 @@ const MainStackHeaderScreen = () => {
 const App = () => {
   return (
     <NavigationContainer ref={navigationRef}>
-      <RootStack.Navigator screenOptions={{headerShown: false}} initialRouteName="Onboarding">
+      <RootStack.Navigator screenOptions={{headerShown: false}} initialRouteName="MainStack">
         <RootStack.Screen name="Onboarding" component={Onboarding} /> 
         <RootStack.Screen name="AuthStack" component={AuthStackScreen} />
         <RootStack.Screen name="MainStack" component={MainStackScreen} />
